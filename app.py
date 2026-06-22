@@ -1,12 +1,27 @@
+from flask import Flask, request, jsonify
+from youtube_transcript_api import YouTubeTranscriptApi
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "API Running"
+
 @app.route("/transcript")
 def transcript():
     video_id = request.args.get("videoId")
 
-    try:
-        ytt_api = YouTubeTranscriptApi()
-        transcript = ytt_api.fetch(video_id)
+    if not video_id:
+        return jsonify({
+            "success": False,
+            "error": "Video ID missing"
+        })
 
-        text = " ".join([x.text for x in transcript])
+    try:
+        api = YouTubeTranscriptApi()
+        fetched_transcript = api.fetch(video_id)
+
+        text = " ".join([item.text for item in fetched_transcript])
 
         return jsonify({
             "success": True,
@@ -18,3 +33,6 @@ def transcript():
             "success": False,
             "error": str(e)
         })
+
+if __name__ == "__main__":
+    app.run()
